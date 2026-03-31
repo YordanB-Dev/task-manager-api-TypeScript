@@ -1,4 +1,4 @@
-# 🚀 Task Manager API 
+# Task Manager API 
 
 A full-featured REST API built with **Node.js**, **Express**, **TypeScript**, and **PostgreSQL**.
 
@@ -11,7 +11,7 @@ This project follows a clean and scalable architecture using:
 
 ---
 
-## 🔥 Features
+## Features
 
 * ✅ User Registration & Login
 * 🔐 JWT Authentication
@@ -22,7 +22,7 @@ This project follows a clean and scalable architecture using:
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 * Node.js
 * Express
@@ -33,7 +33,7 @@ This project follows a clean and scalable architecture using:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -48,7 +48,7 @@ src/
 
 ---
 
-## ⚙️ Setup
+## Setup
 
 ### 1. Clone the repo
 
@@ -83,14 +83,14 @@ npm run dev
 
 ---
 
-## 📌 API Endpoints
+## API Endpoints
 
-### 🔐 Auth
+### Auth
 
 * `POST /api/register`
 * `POST /api/login`
 
-### 📋 Tasks
+### Tasks
 
 * `GET /api/tasks`
 * `GET /api/tasks/:id`
@@ -100,13 +100,13 @@ npm run dev
 
 ---
 
-## 🧠 Author
+## Author
 
-Built by **Yordan Borisov** 💪
+Built by **Yordan Borisov**
 
 ---
 
-## ⭐ Future Improvements
+## Future Improvements
 
 * Refresh Tokens
 * Role-based access (admin/user)
