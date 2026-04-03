@@ -4,7 +4,11 @@ import * as Service from "../services/task.service.js";
 
 export const getAllTask = asyncHandler (
     async (req: Request, res: Response) => {
-        const task = await Service.getAllTask();
+        
+        const userId = req.user.id;
+        
+        const task = await Service.getAllTask(userId);
+        
         return res.json(task);
     }
 );
@@ -20,8 +24,10 @@ export const getTaskById = asyncHandler (
 
 export const createTask = asyncHandler (
     async (req: Request, res: Response) => {
-        const {title, description, userId} = req.body;
-
+        const { title, description } = req.body;
+        
+        const userId = req.user.id;
+        
         const task = await Service.createTask(
             title,
             description,
@@ -36,8 +42,10 @@ export const updateTask = asyncHandler (
     async (req: Request, res: Response) => {
         const id = Number(req.params.id);
 
-        const {title, description, userId} = req.body;
-
+        const { title, description } = req.body;
+        
+        const userId = req.user.id;
+        
         const task = await Service.updateTask(
             id,
             title,
