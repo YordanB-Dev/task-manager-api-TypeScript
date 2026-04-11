@@ -1,40 +1,40 @@
 import type { Request, Response } from "express";
 import asyncHandler from "../middleware/asyncHandler.js";
-import * as Service from "../services/task.service.js";
+import Service from "../services/task.service.js";
 
 export const getAllTask = asyncHandler (
     async (req: Request, res: Response) => {
-        
         const userId = req.user.id;
-        
-        const task = await Service.getAllTask(userId);
-        
-        return res.json(task);
+        const Task = await Service.getAllTask(userId);
+
+        return res.json(Task);
     }
 );
 
 export const getTaskById = asyncHandler (
     async (req: Request, res: Response) => {
         const id = Number(req.params.id);
+        const userId = req.user.id;
 
-        const task = await Service.getTaskById(id);
-        return res.json(task);
+        const Task = await Service.getTaskById(id, userId);
+
+        return res.json(Task);
     }
 );
 
 export const createTask = asyncHandler (
     async (req: Request, res: Response) => {
-        const { title, description } = req.body;
-        
+        const {title, description} = req.body;
+
         const userId = req.user.id;
-        
-        const task = await Service.createTask(
+
+        const Task = await Service.createTask(
             title,
             description,
             userId
         );
 
-        return res.status(201).json(task);
+        return res.status(201).json(Task);
     }
 );
 
@@ -42,18 +42,18 @@ export const updateTask = asyncHandler (
     async (req: Request, res: Response) => {
         const id = Number(req.params.id);
 
-        const { title, description } = req.body;
-        
+        const {title, description} = req.body
+
         const userId = req.user.id;
-        
-        const task = await Service.updateTask(
+
+        const Task = await Service.updateTask(
             id,
             title,
             description,
             userId
         );
 
-        return res.json(task);
+        return res.json(Task);
     }
 );
 
@@ -61,7 +61,10 @@ export const deleteTask = asyncHandler (
     async (req: Request, res: Response) => {
         const id = Number(req.params.id);
 
-        await Service.deleteTask(id);
+        const userId = req.user.id;
+
+        const Task = await Service.deleteTask(id, userId);
+
         return res.status(204).send();
     }
 );
