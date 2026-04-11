@@ -1,25 +1,24 @@
 import repo from "../repositories/task.repository.js";
 import type { QueryResult } from "pg";
+import { AppError } from "../middleware/types/AppError.js";
 
 interface Task {
     id: number,
     title: string,
     description: string,
-    userId: number
-};
+    userId: number;
+}
 
-export const getAllTask = async (): Promise<Task[]> => {
-    const result: QueryResult<Task> = await repo.getAllTask();
+export const getAllTask = async (userId: number): Promise<Task[]> => {
+    const result: QueryResult<Task> = await repo.getAllTask(userId);
     return result.rows;
 };
 
-export const getTaskById = async (id: number): Promise<Task> => {
-    const result: QueryResult<Task> = await repo.getTaskById(id);
-
+export const getTaskById = async (id: number, userId: number): Promise<Task> => {
+    const result: QueryResult<Task> = await repo.getTaskById(id, userId);
+    
     if (result.rows.length === 0) {
-        const err = new Error("Task not found");
-        (err as any).status = 404;
-        throw err;
+        throw new AppError("Task not found", 404);
     };
 
     return result.rows[0]!;
@@ -30,11 +29,18 @@ export const createTask = async (
     description: string,
     userId: number
 ): Promise<Task> => {
-    if (!title || !description || !userId) {
-        const err = new Error("Missing required fields");
-        (err as any).status = 400;
-        throw err;
-    };
+
+    if (!title?.trim() || !description?.trim()) {
+        throw new AppError("Title and description are required", 400);
+    }
+
+    if (title.length > 100) {
+        throw new AppError("Title is too long (max 100 characters)", 400);
+    }
+
+    if (description.length > 1000) {
+        throw new AppError("Description is too long (max 1000 characters)", 400);
+    }
 
     const result: QueryResult<Task> = await repo.createTask(
         title,
@@ -44,6 +50,7 @@ export const createTask = async (
 
     return result.rows[0]!;
 };
+
 
 export const updateTask = async (
     id: number,
@@ -55,25 +62,21 @@ export const updateTask = async (
         id,
         title,
         description,
-        userId,
+        userId
     );
 
     if (result.rows.length === 0) {
-        const err = new Error("Task not found");
-        (err as any).status = 404;
-        throw err;
+        throw new AppError("Task not found", 404);
     };
 
     return result.rows[0]!;
 };
 
-export const deleteTask = async (id: number): Promise<Task> => {
-    const result: QueryResult<Task> = await repo.deleteTask(id);
+export const deleteTask = async (id: number, userId: number): Promise<Task> => {
+    const result: QueryResult<Task> = await repo.deleteTask(id, userId);
 
     if (result.rows.length === 0) {
-        const err = new Error("Task not found");
-        (err as any).status = 404;
-        throw err;
+        throw new AppError("Task not found", 404);
     };
 
     return result.rows[0]!;
