@@ -1,119 +1,103 @@
-# Task Manager API 
+# 🚀 Task Manager API
 
-A full-featured REST API built with **Node.js**, **Express**, **TypeScript**, and **PostgreSQL**.
+A full-featured REST API built with **Node.js**, **Express**, **TypeScript**, and **SQL**.
 
 This project follows a clean and scalable architecture using:
 
-* Controllers
-* Services
-* Repositories
-* Middleware
+- Controllers
+- Services
+- Repositories
+- Middleware
 
 ---
 
-## Features
+## ✨ Features
 
-* ✅ User Registration & Login
-* 🔐 JWT Authentication
-* 📋 Task CRUD (Create, Read, Update, Delete)
-* 🧠 Clean Architecture (Controller → Service → Repository)
-* 🛡️ Error Handling Middleware
-* ⚡ TypeScript for type safety
-
----
-
-## Tech Stack
-
-* Node.js
-* Express
-* TypeScript
-* SQL
-* JWT (Authentication)
-* bcrypt (Password hashing)
+- ✅ User Registration & Login
+- 🔐 JWT Authentication
+- 📋 Task CRUD (Create, Read, Update, Delete)
+- 🧠 Clean Architecture (Controller → Service → Repository)
+- 🛡️ Centralized Error Handling
+- 🧩 Custom AppError class
+- 🧬 Extended Express Request with TypeScript (`req.user`)
+- ⚡ Fully typed with TypeScript
 
 ---
 
-## Project Structure
+## 🛠️ Tech Stack
 
-```
+- Node.js
+- Express
+- TypeScript
+- PostgreSQL
+- JWT (Authentication)
+- bcrypt (Password hashing)
+
+---
+
+## 📁 Project Structure
+
 src/
- ├── controllers/
- ├── services/
- ├── repositories/
- ├── middlewares/
- ├── routes/
- ├── db/
- └── config/
-```
+├── controllers/
+├── services/
+├── repositories/
+├── middlewares/
+├── routes/
+├── db/
+├── config/
+├── utils/
+└── types/
 
 ---
 
-## Setup
+## 🧠 Architecture Overview
 
-### 1. Clone the repo
+This project follows a clean architecture pattern:
 
-```
-git clone https://github.com/your-username/task-manager-api.git
-cd task-manager-api
-```
-
-### 2. Install dependencies
-
-```
-npm install
-```
-
-### 3. Create `.env`
-
-```
-PORT=5000
-DB_USER=your_user
-DB_HOST=localhost
-DB_DATABASE=your_db
-DB_PASSWORD=your_password
-DB_PORT=5432
-JWT_SECRET=your_secret
-```
-
-### 4. Run the server
-
-```
-npm run dev
-```
+- **Controller** → Handles HTTP requests & responses
+- **Service** → Contains business logic
+- **Repository** → Handles database queries
+- **Middleware** → Authentication & error handling
 
 ---
 
-## API Endpoints
+## 🔐 Authentication
 
-### Auth
+Authentication is handled using **JWT (JSON Web Tokens)**.
 
-* `POST /api/register`
-* `POST /api/login`
+- Token is sent via: 
+- Middleware verifies the token and attaches the user to the request:
 
-### Tasks
-
-* `GET /api/tasks`
-* `GET /api/tasks/:id`
-* `POST /api/tasks`
-* `PUT /api/tasks/:id`
-* `DELETE /api/tasks/:id`
+```ts
+req.user.id
 
 ---
 
-## Author
+## 🧬 TypeScript Enhancements
 
-Built by **Yordan Borisov**
+Global Request Type
 
----
+declare global {
+    namespace Express {
+        interface Request {
+            user: {
+                id: number;
+            };
+        }
+    }
+}
 
-## Future Improvements
+export {};
 
-* Refresh Tokens
-* Role-based access (admin/user)
-* Validation with Zod / Joi
-* Swagger API Docs
-* Docker support
+Custom Error Class (AppError)
 
----
+export class AppError extends Error {
+    statusCode: number;
 
-MIT
+    constructor(message: string, statusCode: number) {
+        super(message);
+        this.statusCode = statusCode;
+
+        Object.setPrototypeOf(this, AppError.prototype);
+    }
+}
