@@ -70,34 +70,3 @@ Authentication is handled using **JWT (JSON Web Tokens)**.
 
 ```ts
 req.user.id
-
----
-
-## 🧬 TypeScript Enhancements
-
-Global Request Type
-
-declare global {
-    namespace Express {
-        interface Request {
-            user: {
-                id: number;
-            };
-        }
-    }
-}
-
-export {};
-
-Custom Error Class (AppError)
-
-export class AppError extends Error {
-    statusCode: number;
-
-    constructor(message: string, statusCode: number) {
-        super(message);
-        this.statusCode = statusCode;
-
-        Object.setPrototypeOf(this, AppError.prototype);
-    }
-}
