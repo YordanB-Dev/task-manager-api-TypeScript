@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import asyncHandler from "../middleware/asyncHandler.js";
 import userService from "../services/user.service.js";
-import { log } from "node:console";
 
 interface AuthBody {
     email: string,
