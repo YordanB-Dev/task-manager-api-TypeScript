@@ -1,6 +1,5 @@
 import repo from "../repositories/task.repository.js";
 import type { QueryResult } from "pg";
-import { AppError } from "../middleware/types/AppError.js";
 
 interface Task {
     id: number,
