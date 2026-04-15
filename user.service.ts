@@ -1,63 +1,53 @@
 import repo from "../repositories/user.repository.js";
 import bcrypt from "bcryptjs";
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
+import { AppError } from "../middleware/types/AppError.js";
 
 interface User {
-  id: number,
-  email: string,
-  password: string
-};
+  id: number;
+  email: string;
+  password: string;
+}
 
-const register = async (email: string, password: string) => {
-  if (!email || !password) {
-    const err = new Error("Email and password are required");
-    (err as any).status = 400;
-    throw err;
+export const register = async (email: string, password: string) => {
+  if (!email?.trim() || !password?.trim()) {
+    throw new AppError("Email and password are required", 400);
   }
 
   const existingUser = await repo.findUserByEmail(email);
-
   if (existingUser) {
-    const err = new Error("User already exists");
-    (err as any).status = 400;
-    throw err;
+    throw new AppError("This email is already in use", 400);
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-
   const user = await repo.createUser(email, hashedPassword);
 
   return {
     id: user.id,
-    email: user.email,
+    email: user.email
   };
 };
 
-
-const login = async (email: string, password: string) => {
+export const login = async (email: string, password: string) => {
   const user = await repo.findUserByEmail(email);
-
   if (!user) {
-    const err = new Error("Invalid credentials");
-    (err as any).status = 400;
-    throw err;
-  };
+    throw new AppError("Invalid email or password", 401);
+  }
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch = await bcrypt.compare(password, user.password); 
   if (!isMatch) {
-    const err = new Error("Invalid password");
-    (err as any).status = 400;
-    throw err;
-  };
+    throw new AppError("Invalid email or password", 401);
+  }
 
   const token = jwt.sign(
-    { id: user.id, email: user.email},
+    { id: user.id, email: user.email },
     process.env.JWT_SECRET as string,
-    {expiresIn: "1h"}
+    { expiresIn: "1h" }
   );
 
-  return {
-    token
+  return { 
+    token,
+    user: { id: user.id, email: user.email }
   };
 };
 
