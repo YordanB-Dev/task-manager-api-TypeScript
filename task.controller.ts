@@ -14,7 +14,12 @@ export const getAllTask = asyncHandler (
 export const getTaskById = asyncHandler (
     async (req: Request, res: Response) => {
         const id = Number(req.params.id);
+        
         const userId = req.user.id;
+
+        if (!userId) {
+            throw new AppError("Invalid user", 401);
+        };
 
         const Task = await Service.getTaskById(id, userId);
 
@@ -27,6 +32,10 @@ export const createTask = asyncHandler (
         const {title, description} = req.body;
 
         const userId = req.user.id;
+
+        if (!userId) {
+            throw new AppError("Invalid user", 401);
+        };
 
         const Task = await Service.createTask(
             title,
@@ -46,6 +55,10 @@ export const updateTask = asyncHandler (
 
         const userId = req.user.id;
 
+        if (!userId) {
+            throw new AppError("Invalid user", 401);
+        };
+
         const Task = await Service.updateTask(
             id,
             title,
@@ -63,7 +76,11 @@ export const deleteTask = asyncHandler (
 
         const userId = req.user.id;
 
-        const Task = await Service.deleteTask(id, userId);
+        if (!userId) {
+            throw new AppError("Invalid user", 401);
+        };
+
+        await Service.deleteTask(id, userId);
 
         return res.status(204).send();
     }
