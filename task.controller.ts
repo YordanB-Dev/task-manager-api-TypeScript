@@ -1,72 +1,71 @@
 import type { Request, Response } from "express";
 import asyncHandler from "../middleware/asyncHandler.js";
 import Service from "../services/task.service.js";
+import type { QueryResult } from "pg";
+import type { equal } from "node:assert";
+
+interface Task {
+    id: number,
+    title: string,
+    description: string,
+    userId: number,
+    completed: boolean,
+    createdAt: Date;
+}
 
 export const getAllTask = asyncHandler (
     async (req: Request, res: Response) => {
-        const userId = req.user.id;
-        const Task = await Service.getAllTask(userId);
+        const userId = req.user.id
 
-        return res.json(Task);
+        const tasks = await Service.getAllTask(userId);
+
+        return res.json(tasks);
     }
 );
 
 export const getTaskById = asyncHandler (
     async (req: Request, res: Response) => {
+
         const id = Number(req.params.id);
-        
-        const userId = req.user.id;
 
-        if (!userId) {
-            throw new AppError("Invalid user", 401);
-        };
+        const userid = req.user.id;
 
-        const Task = await Service.getTaskById(id, userId);
+        const task = await Service.getTaskById(id, userid);
 
-        return res.json(Task);
+        return res.json(task);
     }
 );
 
 export const createTask = asyncHandler (
     async (req: Request, res: Response) => {
-        const {title, description} = req.body;
+
+        const { title, description } = req.body;
 
         const userId = req.user.id;
 
-        if (!userId) {
-            throw new AppError("Invalid user", 401);
-        };
+        const newTask = await Service.createTask(title, description, userId);
 
-        const Task = await Service.createTask(
-            title,
-            description,
-            userId
-        );
-
-        return res.status(201).json(Task);
+        return res.status(201).json(newTask);
     }
 );
 
 export const updateTask = asyncHandler (
     async (req: Request, res: Response) => {
+
         const id = Number(req.params.id);
 
-        const {title, description} = req.body
+        const {title, description} = req.body;
 
         const userId = req.user.id;
 
-        if (!userId) {
-            throw new AppError("Invalid user", 401);
-        };
-
-        const Task = await Service.updateTask(
+        const updatedTask = await Service.updateTask(
             id,
             title,
             description,
-            userId
+            userId,
         );
 
-        return res.json(Task);
+        return res.json(updatedTask);
     }
 );
 
@@ -75,10 +74,6 @@ export const deleteTask = asyncHandler (
         const id = Number(req.params.id);
 
         const userId = req.user.id;
-
-        if (!userId) {
-            throw new AppError("Invalid user", 401);
-        };
 
         await Service.deleteTask(id, userId);
 
