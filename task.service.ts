@@ -1,11 +1,16 @@
+import { throwDeprecation } from "node:process";
+import { AppError } from "../middleware/types/AppError.js";
 import repo from "../repositories/task.repository.js";
 import type { QueryResult } from "pg";
+
 
 interface Task {
     id: number,
     title: string,
     description: string,
-    userId: number;
+    userId: number,
+    completed: boolean,
+    createdAt: Date;
 }
 
 export const getAllTask = async (userId: number): Promise<Task[]> => {
@@ -28,18 +33,17 @@ export const createTask = async (
     description: string,
     userId: number
 ): Promise<Task> => {
-
     if (!title?.trim() || !description?.trim()) {
-        throw new AppError("Title and description are required", 400);
-    }
+        throw new AppError("Title, and description are required", 400);
+    };
 
     if (title.length > 100) {
-        throw new AppError("Title is too long (max 100 characters)", 400);
-    }
+        throw new AppError("title is too long (max 100 character)", 400);
+    };
 
     if (description.length > 1000) {
-        throw new AppError("Description is too long (max 1000 characters)", 400);
-    }
+        throw new AppError("Description is too long (max 1000 character)", 400);
+    };
 
     const result: QueryResult<Task> = await repo.createTask(
         title,
@@ -49,7 +53,6 @@ export const createTask = async (
 
     return result.rows[0]!;
 };
-
 
 export const updateTask = async (
     id: number,
@@ -65,7 +68,7 @@ export const updateTask = async (
     );
 
     if (result.rows.length === 0) {
-        throw new AppError("Task not found", 404);
+        throw new AppError("Task not found", 404)
     };
 
     return result.rows[0]!;
@@ -75,7 +78,7 @@ export const deleteTask = async (id: number, userId: number): Promise<Task> => {
     const result: QueryResult<Task> = await repo.deleteTask(id, userId);
 
     if (result.rows.length === 0) {
-        throw new AppError("Task not found", 404);
+        throw new AppError("Task not found", 400);
     };
 
     return result.rows[0]!;
