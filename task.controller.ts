@@ -1,8 +1,7 @@
 import type { Request, Response } from "express";
 import asyncHandler from "../middleware/asyncHandler.js";
 import Service from "../services/task.service.js";
-import type { QueryResult } from "pg";
-import type { equal } from "node:assert";
+import { AppError } from "../middleware/types/AppError.js";
 
 interface Task {
     id: number,
@@ -17,6 +16,10 @@ export const getAllTask = asyncHandler (
     async (req: Request, res: Response) => {
         const userId = req.user.id
 
+        if (!userId) {
+            throw new AppError("Invalid user", 400);
+        }
+
         const tasks = await Service.getAllTask(userId);
 
         return res.json(tasks);
@@ -28,9 +31,13 @@ export const getTaskById = asyncHandler (
 
         const id = Number(req.params.id);
 
-        const userid = req.user.id;
+        const userId = req.user.id;
 
-        const task = await Service.getTaskById(id, userid);
+        if (!userId) {
+            throw new AppError("Invalid user", 400);
+        }
+
+        const task = await Service.getTaskById(id, userId);
 
         return res.json(task);
     }
@@ -42,6 +49,10 @@ export const createTask = asyncHandler (
         const { title, description } = req.body;
 
         const userId = req.user.id;
+
+        if (!userId) {
+            throw new AppError("Invalid user", 400);
+        }
 
         const newTask = await Service.createTask(title, description, userId);
 
@@ -57,6 +68,10 @@ export const updateTask = asyncHandler (
         const {title, description} = req.body;
 
         const userId = req.user.id;
+
+        if (!userId) {
+            throw new AppError("Invalid user", 400);
+        }
 
         const updatedTask = await Service.updateTask(
             id,
@@ -74,6 +89,10 @@ export const deleteTask = asyncHandler (
         const id = Number(req.params.id);
 
         const userId = req.user.id;
+
+        if (!userId) {
+            throw new AppError("Invalid user", 400);
+        }
 
         await Service.deleteTask(id, userId);
 
