@@ -1,4 +1,3 @@
-import { hasSubscribers } from "node:diagnostics_channel";
 import db from "../db.js";
 import type { QueryResult } from "pg";
 
