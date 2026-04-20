@@ -5,15 +5,17 @@ interface User {
     id: number,
     email: string,
     password: string;
+    username: string
 }
 
 const createUser = async (
     email: string,
-    hashedPassword: string
+    hashedPassword: string,
+    username: string
 ): Promise<User> => {
     const result: QueryResult<User> = await db.query(
-        `INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email, password`,
-        [email, hashedPassword]
+        `INSERT INTO users (email, password, username) VALUES ($1, $2, $3) RETURNING id, email, password, username`,
+        [email, hashedPassword, username]
     );
 
     return result.rows[0]!;
