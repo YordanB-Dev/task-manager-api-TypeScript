@@ -1,4 +1,3 @@
-import { throwDeprecation } from "node:process";
 import { AppError } from "../middleware/types/AppError.js";
 import repo from "../repositories/task.repository.js";
 import type { QueryResult } from "pg";
@@ -13,14 +12,18 @@ interface Task {
     createdAt: Date;
 }
 
-export const getAllTask = async (userId: number): Promise<Task[]> => {
-    const result: QueryResult<Task> = await repo.getAllTask(userId);
+export const getAllTasks = async (
+    userId: number,
+    search: string,
+    completed: string
+): Promise<Task[]> => {
+    const result: QueryResult<Task> = await repo.getAllTasks(userId, search, completed);
+
     return result.rows;
 };
 
 export const getTaskById = async (id: number, userId: number): Promise<Task> => {
     const result: QueryResult<Task> = await repo.getTaskById(id, userId);
-    
     if (result.rows.length === 0) {
         throw new AppError("Task not found", 404);
     };
@@ -85,7 +88,7 @@ export const deleteTask = async (id: number, userId: number): Promise<Task> => {
 };
 
 export default {
-    getAllTask,
+    getAllTasks,
     getTaskById,
     createTask,
     updateTask,
