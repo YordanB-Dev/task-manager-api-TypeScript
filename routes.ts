@@ -16,7 +16,7 @@ router.put('/task/:id', authMiddleware, validateTask, taskController.updateTask)
 router.delete('/task/:id', authMiddleware, taskController.deleteTask);
 
 
-router.get('/task', authMiddleware, taskController.getAllTask);
-router.get('/task/:id', taskController.getTaskById);
+router.get('/task', authMiddleware, taskController.getAllTasks);
+router.get('/task/:id', authMiddleware, taskController.getTaskById);
 
 export default router;
