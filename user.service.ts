@@ -7,11 +7,12 @@ interface User {
   id: number;
   email: string;
   password: string;
+  username: string
 }
 
-export const register = async (email: string, password: string) => {
-  if (!email?.trim() || !password?.trim()) {
-    throw new AppError("Email and password are required", 400);
+export const register = async (email: string, password: string, username: string) => {
+  if (!email?.trim() || !password?.trim() || !username.trim()) {
+    throw new AppError("Email and password also and username are required", 400);
   }
 
   const existingUser = await repo.findUserByEmail(email);
@@ -20,7 +21,7 @@ export const register = async (email: string, password: string) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await repo.createUser(email, hashedPassword);
+  const user = await repo.createUser(email, hashedPassword, username);
 
   return {
     id: user.id,
@@ -28,8 +29,8 @@ export const register = async (email: string, password: string) => {
   };
 };
 
-export const login = async (email: string, password: string) => {
-  const user = await repo.findUserByEmail(email);
+export const login = async (email: string, password: string, username: string) => {
+  const user = await repo.findUserByEmail(email) as User | null;
   if (!user) {
     throw new AppError("Invalid email or password", 401);
   }
