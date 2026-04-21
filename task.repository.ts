@@ -7,19 +7,19 @@ const getAllTasks = async (
     completed?: string
 ) => {
 
-    let query = `SELECT * FROM task WHERE "userId" = $1`;
+    let query = `SELECT * FROM tasks WHERE "userId" = $1`;
     const values: any[] = [userId];
-    if (search && search.trim() !== "") {
+    if(search && search.trim() !== "") {
         values.push(`%${search}%`);
         query += ` AND title ILIKE $${values.length}`;
     }
 
-    if (completed !== undefined) {
+    if(completed !== undefined) {
         values.push(completed === "true");
-        query += ` AND completed = $${values.length}`;
+        query += ` AND completed $${values.length}`;
     }
 
-    query += ` ORDER BY created_at DESC`;
+    query += `ORDER BY created_at DESC`;
 
     console.log(query);
     console.log(values);
