@@ -40,7 +40,7 @@ export const createTask = async (
     userId: number
 ): Promise<QueryResult> => {
     return db.query(
-        `INSERT INTO task (title, description, "userId") VALUES ($1, $2, $3) RETURNING *`,
+        `INSERT INTO task (title, description, "userId") VALUES ($1, $2, $3) RETURNING id`,
         [title, description, userId]
     );
 };
