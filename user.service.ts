@@ -25,12 +25,12 @@ export const register = async (email: string, password: string, username: string
 
   return {
     id: user.id,
-    email: user.email
+    email: email
   };
 };
 
 export const login = async (email: string, password: string, username: string) => {
-  const user = await repo.findUserByEmail(email) as User | null;
+  const user = await repo.findUserByEmail(email) as unknown as User | null;
   if (!user) {
     throw new AppError("Invalid email or password", 401);
   }
