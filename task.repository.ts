@@ -1,36 +1,69 @@
 import db from "../db.js";
 import type { QueryResult } from "pg";
 
-const getAllTasks = async (
+export const getAllTasks = async (
     userId: number,
     search?: string,
-    completed?: string
+    completed?: string,
+    page: string = "1",
+    limit: string = "10",
+    sort: string = "desc"
 ) => {
 
-    let query = `SELECT * FROM tasks WHERE "userId" = $1`;
+    let filterQuery = ` SELECT * FROM tasks WHERE "userId" = $1`;
     const values: any[] = [userId];
-    if(search && search.trim() !== "") {
+
+    if (search && search.trim() !== "") {
         values.push(`%${search}%`);
-        query += ` AND title ILIKE $${values.length}`;
+        filterQuery += ` AND title ILIKE $${values.length}`;
     }
 
-    if(completed !== undefined) {
+    if (completed !== undefined) {
         values.push(completed === "true");
-        query += ` AND completed $${values.length}`;
+        filterQuery += ` AND completed $${values.length}`;
     }
 
-    query += `ORDER BY created_at DESC`;
+    const countQuery = ` SELECT COUNT (*) FROM tasks ${filterQuery}`;
+    const countValues = [...values];
+    const countResult = await db.query(countQuery, countValues);
+    const totalItems = Number(countResult.rows[0].count)
 
-    console.log(query);
-    console.log(values);
+    const sortOrder = sort === "asc" ? "ASC" : "DESC";
 
-    return db.query(query, values);
+    let dataQuery = `
+        SELECT * FROM tasks
+        ${filterQuery}
+        ORDER BY created_at ${sortOrder}
+    `;
+
+    const pageNum = Math.max(1, Number(page) || 1);
+    const limitNum = Math.min(50, Number(limit) || 10);
+    const offset = (pageNum - 1) * limitNum;
+
+    values.push(limitNum);
+    dataQuery += ` LIMIT $${values.length}`;
+
+    values.push(offset);
+    dataQuery += ` OFFSET $${values.length}`;
+
+    const dataResult = await db.query(dataQuery, values);
+
+    return {
+        data: dataResult.rows,
+        meta: {
+            totalItems,
+            itemCount: dataResult.rows.length,
+            itemsPerPage: limitNum,
+            totalPages: Math.ceil(totalItems / limitNum),
+            currentPage: pageNum
+        }
+    };
 };
 
-export const getTaskById = async (id: number, userId: number): Promise<QueryResult> => {
+export const getTaskById = async ( id: number, userId: number): Promise<QueryResult> => {
     return db.query(
-        `SELECT * FROM task WHERE id = $1 AND "userId" = $2`,
-        [id, userId]
+        `SELECT * FROM tasks WHERE id = $1 AND WHERE "userId" = $2`,
+        [ id, userId ]
     );
 };
 
@@ -39,7 +72,7 @@ export const createTask = async (
     description: string,
     userId: number
 ): Promise<QueryResult> => {
-    return db.query(
+    return db.query (
         `INSERT INTO task (title, description, "userId") VALUES ($1, $2, $3) RETURNING id`,
         [title, description, userId]
     );
@@ -51,7 +84,7 @@ export const updateTask = async (
     description: string,
     userId: number
 ): Promise<QueryResult> => {
-    return db.query(
+    return db.query (
         `UPDATE task SET title = $1, description = $2 WHERE id = $3 AND "userId" = $4 RETURNING *`,
         [title, description, id, userId]
     );
@@ -59,7 +92,7 @@ export const updateTask = async (
 
 export const deleteTask = async (id: number, userId: number): Promise<QueryResult> => {
     return db.query(
-        `DELETE FROM task WHERE id = $1 AND "userId" = $2 RETURNING *`,
+        `SELECT * FROM task WHERE id = $1 AND WHERE "userId" = $2 RETURNING *`,
         [id, userId]
     );
 };
@@ -70,4 +103,4 @@ export default {
     createTask,
     updateTask,
     deleteTask
-};
+}
