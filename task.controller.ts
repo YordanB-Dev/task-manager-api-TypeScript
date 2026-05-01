@@ -3,30 +3,45 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import Service from "../services/task.service.js";
 import { AppError } from "../middleware/types/AppError.js";
 
-interface Task {
+interface User {
     id: number,
     title: string,
     description: string,
     userId: number,
-    completed: boolean,
-    createdAt: Date;
+    search: boolean,
+    completed: Date;
+    page: string | number,
+    limit: string,
+    sort: string
 }
 
 export const getAllTasks = asyncHandler (
     async (req: Request, res: Response) => {
-        const { search, completed} = req.query;
         const userId = req.user.id;
         if (!userId) {
             throw new AppError("Invalid user", 400);
         };
-        const tasks = await Service.getAllTasks(
+
+        const {
+            search,
+            completed,
+            page = "1",
+            limit = "10",
+            sort = "desc"
+        } = req.query;
+
+        const task = await Service.getAllTasks(
             userId,
             search as string,
-            completed as string
+            completed as string,
+            page as string,
+            limit as string,
+            sort as string
         );
-        return res.json(tasks);
+
+        return res.json(task);
     }
-)
+);
 
 export const getTaskById = asyncHandler (
     async (req: Request, res: Response) => {
