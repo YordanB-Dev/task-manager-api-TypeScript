@@ -4,22 +4,35 @@ import type { QueryResult } from "pg";
 
 
 interface Task {
-    id: number,
     title: string,
     description: string,
     userId: number,
-    completed: boolean,
-    createdAt: Date;
+    search?: boolean,
+    completed: Date,
+    page: string,
+    limit: string,
+    sort: string;
 }
 
 export const getAllTasks = async (
     userId: number,
-    search: string,
-    completed: string
+    search?: string,
+    completed?: string,
+    page: string | number = 1,
+    limit: string | number = 10,
+    sort: string = "desc"
 ): Promise<Task[]> => {
-    const result: QueryResult<Task> = await repo.getAllTasks(userId, search, completed);
 
-    return result.rows;
+    const result = await repo.getAllTasks(
+        userId,
+        search,
+        completed,
+        page.toString(),
+        limit.toString(),
+        sort
+    );
+
+    return result.data;
 };
 
 export const getTaskById = async (id: number, userId: number): Promise<Task> => {
