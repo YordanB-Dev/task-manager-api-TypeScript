@@ -10,17 +10,17 @@ export const getAllTasks = async (
     sort: string = "desc"
 ) => {
 
-    let filterQuery = ` SELECT * FROM tasks WHERE "userId" = $1`;
+    let filterQuery = ` WHERE "userId" = $1`;
     const values: any[] = [userId];
 
     if (search && search.trim() !== "") {
         values.push(`%${search}%`);
-        filterQuery += ` AND title ILIKE $${values.length}`;
+        filterQuery += ` AND title ILIKE = $${values.length}`;
     }
 
     if (completed !== undefined) {
         values.push(completed === "true");
-        filterQuery += ` AND completed $${values.length}`;
+        filterQuery += ` AND completed = $${values.length}`;
     }
 
     const countQuery = ` SELECT COUNT (*) FROM tasks ${filterQuery}`;
@@ -31,7 +31,7 @@ export const getAllTasks = async (
     const sortOrder = sort === "asc" ? "ASC" : "DESC";
 
     let dataQuery = `
-        SELECT * FROM tasks
+        SELECT * FROM task
         ${filterQuery}
         ORDER BY created_at ${sortOrder}
     `;
@@ -62,7 +62,7 @@ export const getAllTasks = async (
 
 export const getTaskById = async ( id: number, userId: number): Promise<QueryResult> => {
     return db.query(
-        `SELECT * FROM tasks WHERE id = $1 AND WHERE "userId" = $2`,
+        `SELECT * FROM task WHERE id = $1 AND WHERE "userId" = $2`,
         [ id, userId ]
     );
 };
