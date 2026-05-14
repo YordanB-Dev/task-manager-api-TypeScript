@@ -21,7 +21,7 @@ const createUser = async (
     return result.rows[0]!;
 };
 
-const findUserByEmail = async (email: string): Promise<User | null> => {
+const findUserByEmail = async (email: string): Promise<User> => {
     const result: QueryResult<User> = await db.query(
         `SELECT * FROM users WHERE email = $1`,
         [email]
