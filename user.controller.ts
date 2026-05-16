@@ -20,9 +20,9 @@ export const register = asyncHandler (
 
 export const login = asyncHandler (
     async (req: Request, res: Response) => {
-        const { email, password, username } = req.body as AuthBody;
+        const { email, password } = req.body as AuthBody;
 
-        const user = await userService.login(email, password, username);
+        const user = await userService.login(email, password );
 
         return res.status(200).json(user);
     }
