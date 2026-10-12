@@ -1,106 +1,48 @@
-import type { Request, Response } from "express";
-import asyncHandler from "../middleware/asyncHandler.js";
-import Service from "../services/task.service.js";
-import { AppError } from "../middleware/types/AppError.js";
+import taskService from "./tasks.service";
+import asyncHandler from "../asyncHandler";
+import type {Request, Response} from "express";
 
-interface User {
-    id: number,
-    title: string,
-    description: string,
-    userId: number,
-    search: boolean,
-    completed: Date;
-    page: string | number,
-    limit: string,
-    sort: string
-}
 
-export const getAllTasks = asyncHandler (
-    async (req: Request, res: Response) => {
-        const userId = req.user.id;
-        if (!userId) {
-            throw new AppError("Invalid user", 400);
-        };
 
-        const {
-            search,
-            completed,
-            page = "1",
-            limit = "10",
-            sort = "desc"
-        } = req.query;
+export const tasksController = {
 
-        const task = await Service.getAllTasks(
-            userId,
-            search as string,
-            completed as string,
-            page as string,
-            limit as string,
-            sort as string
-        );
+    getAll: asyncHandler(async(req: Request, res: Response) => {
+        const userId = (req as any).user.id
+        const status = String(req.query.status as string | undefined);
+        const priority = String(req.query.priority as string | undefined);
+        const result = await taskService.getAllTask(userId, status, priority);
+        return res.status(200).json(result);
+    }),
 
-        return res.json(task);
-    }
-);
-
-export const getTaskById = asyncHandler (
-    async (req: Request, res: Response) => {
+    getById: asyncHandler(async(req: Request, res: Response) => {
         const id = Number(req.params.id);
-        const userId = req.user.id;
-        if (!userId) {
-            throw new AppError("Invalid user", 400);
-        }
-        const task = await Service.getTaskById(id, userId);
-        return res.json(task);
-    }
-);
+        const userId = (req as any).user.id;
+        const result = await taskService.getTaskById(id, userId);
+        return res.status(201).json(result);
+    }),
 
-export const createTask = asyncHandler (
-    async (req: Request, res: Response) => {
-        const { title, description } = req.body;
-        const userId = req.user.id;
-        if (!userId) {
-            throw new AppError("Invalid user", 400);
-        }
-        const newTask = await Service.createTask(title, description, userId);
-        return res.status(201).json(newTask);
-    }
-);
+    create: asyncHandler(async(req: Request, res: Response) => {
+        const userId = (req as any).user.id
+        const {title, description, priority, due_date} = req.body;
+        const result = await taskService.createTask(userId, title, description, priority, due_date);
+        return res.status(201).json(result);
+    }),
 
-export const updateTask = asyncHandler (
-    async (req: Request, res: Response) => {
+    update: asyncHandler(async(req: Request, res: Response) => {
         const id = Number(req.params.id);
-        const {title, description} = req.body;
-        const userId = req.user.id;
-        if (!userId) {
-            throw new AppError("Invalid user", 400);
-        }
-        const task = await Service.updateTask(
-            id,
-            title,
-            description,
-            userId,
-        );
-        return res.json(task);
-    }
-);
+        const user_id = (req as any).user.id;
+        const data = req.body;
 
-export const deleteTask = asyncHandler (
-    async (req: Request, res: Response) => {
+        const result = await taskService.updateTask(id, user_id, data);
+        return res.status(200).json(result);
+    }),
+
+    delete: asyncHandler(async(req: Request, res: Response) => {
         const id = Number(req.params.id);
-        const userId = req.user.id;
-        if (!userId) {
-            throw new AppError("Invalid user", 400);
-        }
-        await Service.deleteTask(id, userId);
-        return res.status(204).send();
-    }
-);
-
-export default {
-    getAllTasks,
-    getTaskById,
-    createTask,
-    updateTask,
-    deleteTask
+        const userId = (req as any).user.id;
+        const result = await taskService.deleteTask(id, userId)
+        return res.status(201).json(result);
+    })
 };
+
+export default tasksController;
