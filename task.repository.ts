@@ -1,106 +1,93 @@
-import db from "../db.js";
-import type { QueryResult } from "pg";
+import pool from "../db";
+import { QueryResult } from "pg";
 
-export const getAllTasks = async (
-    userId: number,
-    search?: string,
-    completed?: string,
-    page: string = "1",
-    limit: string = "10",
-    sort: string = "desc"
-) => {
 
-    let filterQuery = ` WHERE "userId" = $1`;
-    const values: any[] = [userId];
-
-    if (search && search.trim() !== "") {
-        values.push(`%${search}%`);
-        filterQuery += ` AND title ILIKE = $${values.length}`;
-    }
-
-    if (completed !== undefined) {
-        values.push(completed === "true");
-        filterQuery += ` AND completed = $${values.length}`;
-    }
-
-    const countQuery = ` SELECT COUNT (*) FROM tasks ${filterQuery}`;
-    const countValues = [...values];
-    const countResult = await db.query(countQuery, countValues);
-    const totalItems = Number(countResult.rows[0].count)
-
-    const sortOrder = sort === "asc" ? "ASC" : "DESC";
-
-    let dataQuery = `
-        SELECT * FROM task
-        ${filterQuery}
-        ORDER BY created_at ${sortOrder}
-    `;
-
-    const pageNum = Math.max(1, Number(page) || 1);
-    const limitNum = Math.min(50, Number(limit) || 10);
-    const offset = (pageNum - 1) * limitNum;
-
-    values.push(limitNum);
-    dataQuery += ` LIMIT $${values.length}`;
-
-    values.push(offset);
-    dataQuery += ` OFFSET $${values.length}`;
-
-    const dataResult = await db.query(dataQuery, values);
-
-    return {
-        data: dataResult.rows,
-        meta: {
-            totalItems,
-            itemCount: dataResult.rows.length,
-            itemsPerPage: limitNum,
-            totalPages: Math.ceil(totalItems / limitNum),
-            currentPage: pageNum
-        }
-    };
-};
-
-export const getTaskById = async ( id: number, userId: number): Promise<QueryResult> => {
-    return db.query(
-        `SELECT * FROM task WHERE id = $1 AND WHERE "userId" = $2`,
-        [ id, userId ]
-    );
-};
-
-export const createTask = async (
-    title: string,
-    description: string,
-    userId: number
-): Promise<QueryResult> => {
-    return db.query (
-        `INSERT INTO task (title, description, "userId") VALUES ($1, $2, $3) RETURNING id`,
-        [title, description, userId]
-    );
-};
-
-export const updateTask = async (
+interface Task {
     id: number,
     title: string,
     description: string,
-    userId: number
-): Promise<QueryResult> => {
-    return db.query (
-        `UPDATE task SET title = $1, description = $2 WHERE id = $3 AND "userId" = $4 RETURNING *`,
-        [title, description, id, userId]
-    );
-};
-
-export const deleteTask = async (id: number, userId: number): Promise<QueryResult> => {
-    return db.query(
-        `SELECT * FROM task WHERE id = $1 AND WHERE "userId" = $2 RETURNING *`,
-        [id, userId]
-    );
-};
-
-export default {
-    getAllTasks,
-    getTaskById,
-    createTask,
-    updateTask,
-    deleteTask
+    status: string,
+    priority: string,
+    due_date: Date,
+    created_at: Date,
+    user_id: number;
 }
+
+interface UpdateTaskData {
+    title?: string,
+    description?: string,
+    status?: string,
+    priority?: string,
+    due_date?: Date;
+}
+
+export const taskRepository = {
+
+    async getAll(user_id: number, status?: string, priority?: string) {
+        const result: QueryResult<Task> = await pool.query<Task> (
+            `SELECT * FROM tasks WHERE user_id = $1
+            AND ($2 IS NULL OR status = $2)
+            AND ($3 IS NULL OR priority = $3)`,
+            [user_id, status ?? null, priority ?? null]
+        );
+
+        return result.rows;
+    },
+
+    async getById(id: number, user_id: number) {
+        const result: QueryResult<Task> = await pool.query<Task> (
+            `SELECT * FROM tasks WHERE id = $1 AND user_id = $2`,
+            [id, user_id]
+        );
+
+        return result.rows[0];
+    },
+
+    async createTask(user_id: number, title: string, description: string, priority: string, due_date: Date, created_at: Date) {
+        
+        const result: QueryResult<Task> = await pool.query<Task> (
+            `INSERT INTO tasks (user_id, title, description, priority, due_date, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *`,
+            [user_id, title, description, priority, due_date, created_at]
+        );
+
+        return result.rows[0];
+    },
+
+    async updateTasks(user_id: number,id: number, data: UpdateTaskData) {
+        const result: QueryResult<Task> = await pool.query<Task> (
+            `UPDATE SET 
+                title = COALESCE($1, title),
+                description = COALESCE($2, description),
+                status = COALESCE($3, status),
+                priority = COALESCE($4, priority),
+                due_date = COALESCE ($5, due_date),
+                WHERE id = $6 AND user_id = $7
+                RETURNING *`,
+            [
+                data.title ?? null,
+                data.description ?? null,
+                data.status ?? null,
+                data.priority ?? null,
+                data.due_date ?? null,
+                id,
+                user_id
+            ]
+        );
+
+        return result.rows[0];
+    },
+
+    async deleteTask(user_id: number, id: number) {
+
+        const result: QueryResult<Task> = await pool.query<Task> (
+            `DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING *`,
+            [id, user_id]
+        );
+
+        return result.rows[0];
+    }
+};
+
+export default taskRepository;
