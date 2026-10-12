@@ -1,109 +1,144 @@
-import { AppError } from "../middleware/types/AppError.js";
-import repo from "../repositories/task.repository.js";
-import type { QueryResult } from "pg";
+import taskRepository from "./tasks.repository";
+import AppError from "../AppError";
 
 
-interface Task {
-    title: string,
-    description: string,
-    userId: number,
-    search?: boolean,
-    completed: Date,
-    page: string,
-    limit: string,
-    sort: string;
+interface UpdateTaskData {
+    title?: string,
+    description?: string,
+    status?: string,
+    priority?: string,
+    due_date?: Date;
 }
 
-export const getAllTasks = async (
-    userId: number,
-    search?: string,
-    completed?: string,
-    page: string | number = 1,
-    limit: string | number = 10,
-    sort: string = "desc"
-): Promise<Task[]> => {
+export const taskService = {
+    async getAllTask(user_id: number, status?: string, priority?: string) {
 
-    const result = await repo.getAllTasks(
-        userId,
-        search,
-        completed,
-        page.toString(),
-        limit.toString(),
-        sort
-    );
+        const allowedStatus = [
+            "todo",
+            "in_progress",
+            "completed"
+        ]
 
-    return result.data;
+        const allowedPriority = [
+            "low",
+            "medium",
+            "high"
+        ]
+
+        if (status && !allowedStatus.includes(status)) {
+            throw new AppError(`Invalid status`, 400);
+        }
+
+        if (priority && !allowedPriority.includes(priority)) {
+            throw new AppError(`Invalid priority`, 400);
+        }
+
+        const result = await taskRepository.getAll(user_id, status, priority);
+        return result;
+    },
+
+
+    async getTaskById(id: number, user_id: number) {
+        const result = await taskRepository.getById(id, user_id);
+        if (!result) {
+            throw new AppError(`Taks not found`, 404);
+        }
+
+        return result;
+    },
+
+    async createTask(user_id: number, title: string, description: string, priority: string, due_date: Date) {
+        
+        if (!title || title.trim().length === 0) {
+            throw new AppError(`Invalid title`,  400);
+        }
+
+        if (!description || description.trim().length === 0) {
+            throw new AppError(`Invalid description`, 400);
+        }
+
+        const allowedPriorities = ["low", "medium", "high"];
+
+        if (!allowedPriorities.includes(priority)) {
+            throw new AppError(`Invalid priority`, 400);
+        }
+
+        const createdAt = new Date();
+
+        const task = await taskRepository.createTask(
+            user_id,
+            title,
+            description,
+            priority,
+            due_date,
+            createdAt
+        );
+
+        return task;
+    },
+
+    async updateTask(id: number, user_id: number, data: UpdateTaskData) {
+        const allowedStatuses = [
+            "todo",
+            "in_progress",
+            "completed"
+        ];
+
+        const allowedPriorities = [
+            "low",
+            "medium",
+            "high"
+        ];
+
+        if (Object.keys(data).length === 0) {
+            throw new AppError(`Invalid task`, 400)
+        }
+
+        const allowedFields = [
+            "title",
+            "description",
+            "status",
+            "priority",
+            "due_date"
+        ];
+
+        const hasInvalidField = Object.keys(data).some((field) => {
+            return !allowedFields.includes(field);
+        });
+
+        if (!hasInvalidField) {
+            throw new AppError(`Invalid field`, 400);
+        }
+        
+        if (data.status && !allowedStatuses.includes(data.status)) {
+            throw new AppError(`Invalid status`, 400);
+        }
+
+        if (data.status && !allowedPriorities.includes(data.status)) {
+            throw new AppError(`Invalid priority`, 400);
+        }
+
+        const task = await taskRepository.updateTasks(
+            id, user_id, data
+        );
+
+        if (!task) {
+            throw new AppError(`Tassk not found`, 404);
+        }
+
+        return task;
+    },
+
+    async deleteTask(user_id: number, id: number) {
+        const result = await taskRepository.deleteTask(user_id, id);
+
+        if (!result) {
+            throw new AppError(`Invlaid task`, 400);
+        }
+
+        return result;
+    }
 };
 
-export const getTaskById = async (id: number, userId: number): Promise<Task> => {
-    const result: QueryResult<Task> = await repo.getTaskById(id, userId);
-    if (result.rows.length === 0) {
-        throw new AppError("Task not found", 404);
-    };
 
-    return result.rows[0]!;
-};
-
-export const createTask = async (
-    title: string,
-    description: string,
-    userId: number
-): Promise<Task> => {
-    if (!title?.trim() || !description?.trim()) {
-        throw new AppError("Title, and description are required", 400);
-    };
-
-    if (title.length > 100) {
-        throw new AppError("title is too long (max 100 character)", 400);
-    };
-
-    if (description.length > 1000) {
-        throw new AppError("Description is too long (max 1000 character)", 400);
-    };
-
-    const result: QueryResult<Task> = await repo.createTask(
-        title,
-        description,
-        userId
-    );
-
-    return result.rows[0]!;
-};
-
-export const updateTask = async (
-    id: number,
-    title: string,
-    description: string,
-    userId: number
-): Promise<Task> => {
-    const result: QueryResult<Task> = await repo.updateTask(
-        id,
-        title,
-        description,
-        userId
-    );
-
-    if (result.rows.length === 0) {
-        throw new AppError("Task not found", 404)
-    };
-
-    return result.rows[0]!;
-};
-
-export const deleteTask = async (id: number, userId: number): Promise<Task> => {
-    const result: QueryResult<Task> = await repo.deleteTask(id, userId);
-
-    if (result.rows.length === 0) {
-        throw new AppError("Task not found", 400);
-    };
-
-    return result.rows[0]!;
-};
-
-export default {
-    getAllTasks,
-    getTaskById,
-    createTask,
-    updateTask,
-    deleteTask
-};
+export default taskService;
