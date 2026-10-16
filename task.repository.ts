@@ -43,13 +43,13 @@ export const taskRepository = {
         return result.rows[0];
     },
 
-    async createTask(user_id: number, title: string, description: string, priority: string, due_date: Date, created_at: Date) {
+    async createTask(user_id: number, title: string, description: string, status: string,  string, priority: string, due_date: Date, created_at: Date) {
         
         const result: QueryResult<Task> = await pool.query<Task> (
-            `INSERT INTO tasks (user_id, title, description, priority, due_date, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            `INSERT INTO tasks (user_id, title, description, status, priority, due_date, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *`,
-            [user_id, title, description, priority, due_date, created_at]
+            [user_id, title, description, status, priority, due_date, created_at]
         );
 
         return result.rows[0];
