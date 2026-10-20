@@ -42,11 +42,11 @@ export const taskService = {
         ];
 
         if (status && !allowedStatus.includes(status)) {
-            throw new AppError("Invlaid status", 400);
+            throw new AppError("Invalid status", 400);
         };
 
         if (priority && !allowedPriority.includes(priority)) {
-            throw new AppError("Invalid priority", 400);
+            throw new AppError("Invalid status", 400);
         };
 
         const result = await taskRepository.getAll(user_id, status, priority);
@@ -59,7 +59,7 @@ export const taskService = {
 
         const result = await taskRepository.getById(id, user_id);
         if (!result) {
-            new AppError(`Task not found`, 404);
+           throw new AppError(`Task not found`, 404);
         };
 
         return result;
@@ -71,24 +71,18 @@ export const taskService = {
             throw new AppError("Invalid title", 400);
         }
 
-        if (description || description.trim().length === 0) {
+        if (!description || description.trim().length === 0) {
             throw new AppError("Invalid description", 400);
-        }
-
-        const allowedStatus = ["todo", "in_progress", "completed"];
-
-        if (status && !allowedStatus.includes(status)) {
-            throw new AppError("Invalid status", 400);
         }
 
         const allowedPriority = ["low", "medium", "high"];
 
-        if (priority && !allowedPriority.includes(priority)) {
+        if (!priority && !allowedPriority.includes(priority)) {
             throw new AppError("Invalid priority", 400);
         }
 
 
-        const createdAt = new Date();
+        const taskCreatedAt = new Date();
 
         const task = await taskRepository.createTask(
             user_id,
@@ -97,7 +91,7 @@ export const taskService = {
             status,
             priority,
             due_date,
-            created_at
+            taskCreatedAt
         );
 
         return task;
@@ -106,7 +100,7 @@ export const taskService = {
     async updateTask(user_id: number, id: number, updateData: UpdateTaskData) {
 
         if (Object.keys(updateData).length === 0) {
-            throw new AppError("Data not found", 404);
+            throw new AppError("Invalid data", 400);
         }
 
         const allowedFields = [
@@ -118,7 +112,7 @@ export const taskService = {
         ];
 
         const allowedStatus = [
-            "toto",
+            "todo",
             "in_progress",
             "completed"
         ];
@@ -137,11 +131,11 @@ export const taskService = {
             throw new AppError("Invalid filed", 400);
         };
 
-        if (updateData.title || updateData.title?.trim().length === 0) {
+        if (!updateData.title || updateData.title?.trim().length === 0) {
             throw new AppError("Invalid title", 400);
         };
 
-        if (updateData.description || updateData.description?.trim().length === 0) {
+        if (!updateData.description || updateData.description?.trim().length === 0) {
             throw new AppError("Invalid description", 400);
         };
 
